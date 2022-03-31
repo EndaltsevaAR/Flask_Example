@@ -1,23 +1,37 @@
 from flask import Flask, render_template, request
 from vsearch import search4letters
 
+"""Creating a Flask Webapp Object"""
 app = Flask(__name__)
+
+
+def log_request(req: 'flask_request', res: str) -> None:
+    """Function for logging information at the 'vsearch_log' file"""
+    with open('vsearch.log', 'a') as vsearch_log:
+        print(req, res, file=vsearch_log)
 
 
 @app.route('/search4', methods=['POST'])
 def do_search() -> 'html':
+    """Return result of request at the html form"""
     phrase = request.form['phrase']
     letters = request.form['letters']
     results = str(search4letters(phrase, letters))
-    title = "Here are your results:"
-    return render_template('result.html', the_title=title, the_phrase=phrase, the_letters=letters, the_results=results,)
+    log_request(request, results)
+    title = 'Here are your results:'
+    return render_template('result.html', the_title=title, the_phrase=phrase, the_letters=letters,
+                           the_results=results, )
 
 
 @app.route('/')
 @app.route('/entry')
 def entry_page() -> 'html':
+    """Create html form for user from 'entry.html' with the_title as JiniaII argument"""
     return render_template('entry.html', the_title='Welcome')
 
 
 if __name__ == '__main__':
+    """Debugging mode"""
     app.run(debug=True)
+
+
