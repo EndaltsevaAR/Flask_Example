@@ -1,14 +1,20 @@
 from flask import Flask, render_template, request, escape
 from vsearch import search4letters
+import mysql.connector
 
 """Creating a Flask Webapp Object"""
 app = Flask(__name__)
 
 
 def log_request(req: 'flask_request', res: str) -> None:
-    """Function for logging information at the 'vsearch_log' file"""
-    with open('vsearch.log', 'a') as vsearch_log:
-        print(req.form, req.remote_addr, req.user_agent, res, file=vsearch_log, sep='|')
+    dbconfig = {'host': '127.0.0.1', 'user': 'vsearch', 'password': 'vsearchpasswd', 'database': 'vsearchlogDB',}
+    conn = mysql.connector.connect(**dbconfig)
+    cursor = conn.cursor()
+    _SQL = """insert into log (phrase, letters, ip, browser_string, results) values (%s, %s, %s, %s, %s)"""
+    cursor.execute(_SQL, (req.form['phrase'], req.form['letters'], req.remote_addr, 'TempleBrowser', res, ))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 
 @app.route('/search4', methods=['POST'])
